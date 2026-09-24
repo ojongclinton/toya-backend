@@ -27,6 +27,11 @@ services:
       daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     expose:
       - "8000"
+    networks:
+      backend:
+      gateway:
+        aliases:
+          - toya-api
 
   celery:
     <<: *backend
@@ -67,34 +72,14 @@ services:
     networks:
       - backend
 
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    env_file:
-      - ${ENV_FILE:-.env.production}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - static-data:/srv/static:ro
-      - media-data:/srv/media:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - app
-    networks:
-      - backend
-
 volumes:
   postgres-data:
   redis-data:
   static-data:
   media-data:
-  caddy-data:
-  caddy-config:
 
 networks:
   backend:
     driver: bridge
+  gateway:
+    external: true

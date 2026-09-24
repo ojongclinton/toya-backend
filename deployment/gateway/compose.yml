@@ -1,0 +1,32 @@
+name: gateway
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - toya-static:/srv/toya/static:ro
+      - toya-media:/srv/toya/media:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - gateway
+
+volumes:
+  caddy-data:
+  caddy-config:
+  toya-static:
+    external: true
+    name: toya_static-data
+  toya-media:
+    external: true
+    name: toya_media-data
+
+networks:
+  gateway:
+    external: true

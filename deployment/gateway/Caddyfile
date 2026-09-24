@@ -1,15 +1,15 @@
-{$DOMAIN} {
+api.toya-vtc.com {
     encode zstd gzip
 
     handle_path /static/* {
-        root * /srv/static
+        root * /srv/toya/static
         file_server
     }
 
     handle_path /media/* {
-        root * /srv/media
+        root * /srv/toya/media
         file_server
     }
 
-    reverse_proxy app:8000
+    reverse_proxy toya-api:8000
 }
