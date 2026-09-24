@@ -2,14 +2,30 @@ api.toya-vtc.com {
     encode zstd gzip
 
     handle_path /static/* {
-        root * /srv/toya/static
+        root * /srv/toya-prod/static
         file_server
     }
 
     handle_path /media/* {
-        root * /srv/toya/media
+        root * /srv/toya-prod/media
         file_server
     }
 
-    reverse_proxy toya-api:8000
+    reverse_proxy toya-api-prod:8000
+}
+
+staging-api.toya-vtc.com {
+    encode zstd gzip
+
+    handle_path /static/* {
+        root * /srv/toya-staging/static
+        file_server
+    }
+
+    handle_path /media/* {
+        root * /srv/toya-staging/media
+        file_server
+    }
+
+    reverse_proxy toya-api-staging:8000
 }

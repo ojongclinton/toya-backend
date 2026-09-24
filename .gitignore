@@ -39,9 +39,10 @@ TODO.md
 
 # Fichiers de déploiement
 *.env
-.env.production
+.env.*
 !.env.example
 !.env.production.example
+!.env.staging.example
 *.docker
 secrets/
 backups/

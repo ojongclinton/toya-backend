@@ -1,4 +1,4 @@
-name: toya
+name: ${COMPOSE_PROJECT_NAME:-toya-prod}
 
 x-backend: &backend
   build:
@@ -31,11 +31,11 @@ services:
       backend:
       gateway:
         aliases:
-          - toya-api
+          - ${TOYA_API_ALIAS:-toya-api-prod}
 
   celery:
     <<: *backend
-    command: celery -A core worker --loglevel=info --concurrency=2
+    command: celery -A core worker --loglevel=info --concurrency=${CELERY_CONCURRENCY:-2}
 
   celery-beat:
     <<: *backend
