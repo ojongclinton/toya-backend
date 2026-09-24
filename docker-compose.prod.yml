@@ -3,7 +3,7 @@ name: ${COMPOSE_PROJECT_NAME:-toya-prod}
 x-backend: &backend
   build:
     context: .
-  image: toya-backend:production
+  image: ${BACKEND_IMAGE:-toya-backend:prod}
   restart: unless-stopped
   env_file:
     - ${ENV_FILE:-.env.production}
