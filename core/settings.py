@@ -180,10 +180,13 @@ FIREBASE_CREDENTIALS = os.environ.get(
     os.path.join(BASE_DIR, 'core', 'firebase', 'serviceAccountKey.json'),
 )
 
-try:
-    get_app()
-except ValueError:
-    initialize_app(credentials.Certificate(FIREBASE_CREDENTIALS))
+ENABLE_FIREBASE = env_bool('ENABLE_FIREBASE', True)
+
+if ENABLE_FIREBASE:
+    try:
+        get_app()
+    except ValueError:
+        initialize_app(credentials.Certificate(FIREBASE_CREDENTIALS))
 
 
 # Database
