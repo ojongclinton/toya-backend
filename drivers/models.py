@@ -10,11 +10,9 @@ from django.db import transaction
 from decimal import Decimal
 
 
-def vehicule_directory_path(instance , filename):
+def driver_directory_path(instance, filename):
     
     return f"user/drivers/{str(instance.id)}/{filename}" 
-
-# TODO - FIXME -> For some reasons that I don't know, when ever I trigger migrations it suggests I altered the profile_photo of the driver model despite not doing the change. Please investigate the issue, it is minor but all issues related to migrations are NEVER Fun to deal with. In this sense, NEVER update the docker compose file to automatically include makemigrations and migrate instructions as the level of confusion and breakage this will create will be too much to handle. 
 
 class Drivers(BaseUser): 
     username        = models.CharField(max_length=255, null=False)
@@ -30,7 +28,7 @@ class Drivers(BaseUser):
         help_text="Driver wallet balance in FCFA"
     )
     is_available    = models.BooleanField(default=False)
-    profile_picture = models.ImageField(upload_to=vehicule_directory_path, null=True, blank=True) 
+    profile_picture = models.ImageField(upload_to=driver_directory_path, null=True, blank=True)
     is_phone_verified = models.BooleanField(default=False, help_text="Whether the user's phone number has been verified via OTP")
 
     # grade_level     = models.CharField(max_length= 255 , default=)
