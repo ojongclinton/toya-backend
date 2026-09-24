@@ -74,9 +74,13 @@ services:
 
 volumes:
   postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}_postgres-data
   redis-data:
+    name: ${COMPOSE_PROJECT_NAME}_redis-data
   static-data:
+    name: ${COMPOSE_PROJECT_NAME}_static-data
   media-data:
+    name: ${COMPOSE_PROJECT_NAME}_media-data
 
 networks:
   backend:
