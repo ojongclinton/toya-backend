@@ -1,0 +1,118 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+    restart: always
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    environment:
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET=${DJANGO_SECRET:?DJANGO_SECRET must be set}
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - POSTGRES_DB=${POSTGRES_DB:-toya_db}
+      - POSTGRES_USER=${POSTGRES_USER:-toya}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    command: >
+      sh -c "
+        python manage.py collectstatic --noinput &&
+        daphne core.asgi:application --bind 0.0.0.0 --port 8000"
+
+
+  celery:
+    build:
+      context: .
+    restart: always
+    command: >
+      sh -c "celery -A core worker --loglevel=info"
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    environment:
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET=${DJANGO_SECRET:?DJANGO_SECRET must be set}
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - POSTGRES_DB=${POSTGRES_DB:-toya_db}
+      - POSTGRES_USER=${POSTGRES_USER:-toya}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - REDIS_HOST=redis
+    depends_on:
+      - app
+      - redis
+
+  celery-beat:
+    build:
+      context: .
+    restart: always
+    command: >
+      sh -c "celery -A core beat --loglevel=info"
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    environment:
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET=${DJANGO_SECRET:?DJANGO_SECRET must be set}
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - POSTGRES_DB=${POSTGRES_DB:-toya_db}
+      - POSTGRES_USER=${POSTGRES_USER:-toya}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - REDIS_HOST=redis
+    depends_on:
+      - app
+      - redis
+
+
+  proxy:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      # Certificats et webroot let's encrypt - Pour la redirection http -> https
+      - /srv/certbot/pre-prod:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt
+
+      # Volumes applicatifs (statique/medias) - pour servir les medias en https
+      - static-data:/vol/static
+      - media-data:/vol/media
+
+      # Configuration nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+
+  postgres:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-toya_db}
+      - POSTGRES_USER=${POSTGRES_USER:-toya}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - default
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - default
+
+volumes:
+  static-data:
+  media-data:
+  postgres_data:
+
+networks:
+  default:
+    driver: bridge

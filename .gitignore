@@ -1,0 +1,67 @@
+# Python
+__pycache__/*
+*.py[cod]
+*.pyo
+*.pyd
+*.python-version
+
+# Environnements virtuels
+.venv/
+env/
+venv/
+
+# Django migrations
+# */migrations/
+
+# Fichiers de base de données
+*.sqlite3
+db.sqlite3
+# Fichiers de configuration IDE
+.vscode/
+.idea/
+
+# Fichiers de logs
+*.log
+
+# Fichiers de tests Python
+*.coverage
+.coverage.*
+nosetests.xml
+pytest.xml
+*.tox
+*.nox
+*.coverage
+*.hypothesis/
+TODO.md
+# Dossiers temporaires
+*.swp
+*.swo
+
+# Fichiers de déploiement
+*.env
+.env.production
+!.env.example
+!.env.production.example
+*.docker
+secrets/
+backups/
+core/firebase/serviceAccountKey.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Fichiers collectstatic (si tu utilises `collectstatic` de Django)
+staticfiles/
+
+
+# Dev settings
+/core/settings_dev.py
+/toya.sqlite
+dump.rdb
+/.windsurf
+/docker-compose.local.yml
+/local_settings.py
+core/settings_dev.py

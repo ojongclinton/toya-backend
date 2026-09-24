@@ -1,0 +1,100 @@
+name: toya
+
+x-backend: &backend
+  build:
+    context: .
+  image: toya-backend:production
+  restart: unless-stopped
+  env_file:
+    - ${ENV_FILE:-.env.production}
+  volumes:
+    - static-data:/vol/static
+    - media-data:/vol/media
+    - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - backend
+
+services:
+  app:
+    <<: *backend
+    command: >-
+      sh -c "python manage.py collectstatic --noinput &&
+      daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+    expose:
+      - "8000"
+
+  celery:
+    <<: *backend
+    command: celery -A core worker --loglevel=info --concurrency=2
+
+  celery-beat:
+    <<: *backend
+    command: celery -A core beat --loglevel=info
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - static-data:/srv/static:ro
+      - media-data:/srv/media:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    networks:
+      - backend
+
+volumes:
+  postgres-data:
+  redis-data:
+  static-data:
+  media-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  backend:
+    driver: bridge
