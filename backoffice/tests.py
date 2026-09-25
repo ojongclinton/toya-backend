@@ -20,7 +20,7 @@ class RegisterAdminPermissionTests(APITestCase):
         }
 
     def test_anonymous_user_cannot_register_admin(self):
-        response = self.client.post(self.url, self.payload, format="json")
+        response = self.client.post(self.url, self.payload, format="json", secure=True)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertFalse(BackofficeAdmin.objects.filter(email=self.payload["email"]).exists())
@@ -35,7 +35,7 @@ class RegisterAdminPermissionTests(APITestCase):
         user.save(update_fields=["password"])
         self.client.force_authenticate(user=user)
 
-        response = self.client.post(self.url, self.payload, format="json")
+        response = self.client.post(self.url, self.payload, format="json", secure=True)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(BackofficeAdmin.objects.filter(email=self.payload["email"]).exists())
@@ -54,7 +54,7 @@ class RegisterAdminPermissionTests(APITestCase):
         admin.save(update_fields=["password"])
         self.client.force_authenticate(user=admin)
 
-        response = self.client.post(self.url, self.payload, format="json")
+        response = self.client.post(self.url, self.payload, format="json", secure=True)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(BackofficeAdmin.objects.filter(email=self.payload["email"]).exists())
