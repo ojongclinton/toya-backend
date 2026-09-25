@@ -19,6 +19,7 @@ from rest_framework.parsers import FormParser , MultiPartParser
 from drivers.serializers import UpdateUserProfile
 from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
+from ..permissions import IsBackofficeAdmin
 
 @extend_schema(
     tags=['BackOffice Authentification'], 
@@ -30,6 +31,7 @@ from django.shortcuts import get_object_or_404
     )
 
 @api_view(['POST'])
+@permission_classes([IsBackofficeAdmin])
 def register_admin(request):
     """
     Create a new admin user.
